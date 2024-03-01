@@ -68,6 +68,20 @@ defmodule TypeResolver.ParseHelpers do
     |> Map.new()
   end
 
+  def parse_args(args, env) when is_list(args) do
+    Enum.reduce(args, {:ok, []}, fn
+      arg, {:ok, ret} ->
+        with {:ok, parsed} <- parse(arg, env) do
+          {:ok, [parsed | ret]}
+        end
+
+      _arg, {:error, _} = err ->
+        err
+    end)
+  end
+
+  def parse_args(_, _env), do: {:error, :cannot_parse}
+
   @doc !"""
        We catch structs since already parsed parts can end up in the
        expression. Only already parsed sub expressions are structs, else

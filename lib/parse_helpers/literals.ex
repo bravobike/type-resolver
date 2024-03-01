@@ -1,6 +1,5 @@
 defmodule TypeResolver.ParseHelpers.Literals do
   alias TypeResolver.ParseHelpers
-  alias TypeResolver.ParseHelpers.ParametrizedType
   alias TypeResolver.Types
 
   use TypedStruct
@@ -25,34 +24,34 @@ defmodule TypeResolver.ParseHelpers.Literals do
   end
 
   # non empty list
-  def translate([{:..., _, nil}, type], env) do
+  defp translate([{:..., _, nil}, type], env) do
     with {:ok, type} <- ParseHelpers.parse(type, env) do
       %Types.NonemptyListT{inner: type}
     end
   end
 
-  def translate([{:..., _, nil}], _env), do: %Types.NonemptyListT{inner: %Types.AnyT{}}
+  defp translate([{:..., _, nil}], _env), do: %Types.NonemptyListT{inner: %Types.AnyT{}}
 
   # ranges
-  def translate({:.., _, [from, to]}, _env), do: %Types.RangeL{from: from, to: to}
+  defp translate({:.., _, [from, to]}, _env), do: %Types.RangeL{from: from, to: to}
 
-  def translate({:type, _, :range, [{_, _, from}, {_, _, to}]}, _env),
+  defp translate({:type, _, :range, [{_, _, from}, {_, _, to}]}, _env),
     do: %Types.RangeL{from: from, to: to}
 
   # funs
-  def translate({:type, _, :fun, [{:type, _, :product, args}, _]}, _env),
+  defp translate({:type, _, :fun, [{:type, _, :product, args}, _]}, _env),
     do: %Types.FunctionL{arity: Enum.count(args)}
 
-  def translate({:type, _, :fun, [{:type, _, :any}, _]}, _env), do: %Types.FunctionL{arity: :any}
-  def translate({:type, _, :product, args}, _env), do: %Types.FunctionL{arity: Enum.count(args)}
-  def translate([{:->, _, [[{:..., _, _}], _]}], _env), do: %Types.FunctionL{arity: :any}
-  def translate([{:->, _, [args, _]}], _env), do: %Types.FunctionL{arity: Enum.count(args)}
+  defp translate({:type, _, :fun, [{:type, _, :any}, _]}, _env), do: %Types.FunctionL{arity: :any}
+  defp translate({:type, _, :product, args}, _env), do: %Types.FunctionL{arity: Enum.count(args)}
+  defp translate([{:->, _, [[{:..., _, _}], _]}], _env), do: %Types.FunctionL{arity: :any}
+  defp translate([{:->, _, [args, _]}], _env), do: %Types.FunctionL{arity: Enum.count(args)}
 
-  def translate([], _env), do: %Types.EmptyListL{}
+  defp translate([], _env), do: %Types.EmptyListL{}
   # this seems like the empty list ast?
-  def translate({:type, _, nil, []}, _env), do: %Types.EmptyListL{}
+  defp translate({:type, _, nil, []}, _env), do: %Types.EmptyListL{}
 
-  def translate([t], env) do
+  defp translate([t], env) do
     case ParseHelpers.parse(t, env) do
       {:ok, t} -> %Types.ListT{inner: t}
       {:error, _} = err -> err
@@ -60,70 +59,70 @@ defmodule TypeResolver.ParseHelpers.Literals do
   end
 
   # arity
-  def translate({:type, _, :arity, []}, _env), do: %Types.RangeL{from: 0, to: 255}
-  def translate({:arity, _, []}, _env), do: %Types.RangeL{from: 0, to: 255}
+  defp translate({:type, _, :arity, []}, _env), do: %Types.RangeL{from: 0, to: 255}
+  defp translate({:arity, _, []}, _env), do: %Types.RangeL{from: 0, to: 255}
 
   # integer
-  def translate(i, _env) when is_integer(i), do: %Types.IntegerL{value: i}
-  def translate({:integer, _, i}, _env), do: %Types.IntegerL{value: i}
+  defp translate(i, _env) when is_integer(i), do: %Types.IntegerL{value: i}
+  defp translate({:integer, _, i}, _env), do: %Types.IntegerL{value: i}
 
   # empty bitstring
-  def translate({:type, _, :binary, [{:integer, _, 0}, {:integer, _, 0}]}, _env),
+  defp translate({:type, _, :binary, [{:integer, _, 0}, {:integer, _, 0}]}, _env),
     do: %Types.EmptyBitstringL{}
 
-  def translate({:<<>>, _, []}, _env), do: %Types.EmptyBitstringL{}
+  defp translate({:<<>>, _, []}, _env), do: %Types.EmptyBitstringL{}
 
-  def translate(
-        {:<<>>, _,
-         [
-           {:"::", _, [{:_, _, _}, size]},
-           {:"::", _, [{:_, _, _}, {:*, _, [{:_, _, _}, unit]}]}
-         ]},
-        _env
-      ),
-      do: %Types.SizedBitstringWithUnitL{size: size, unit: unit}
+  defp translate(
+         {:<<>>, _,
+          [
+            {:"::", _, [{:_, _, _}, size]},
+            {:"::", _, [{:_, _, _}, {:*, _, [{:_, _, _}, unit]}]}
+          ]},
+         _env
+       ),
+       do: %Types.SizedBitstringWithUnitL{size: size, unit: unit}
 
   # bit string with unit
 
-  def translate({:<<>>, _, [{:"::", _, [{:_, _, _}, {:*, _, [{:_, _, _}, unit]}]}]}, _env),
+  defp translate({:<<>>, _, [{:"::", _, [{:_, _, _}, {:*, _, [{:_, _, _}, unit]}]}]}, _env),
     do: %Types.BitstringWithUnitL{unit: unit}
 
   # sized bitstring
-  def translate({:type, _, :binary, [{:integer, _, num}, {:integer, _, 0}]}, _env),
+  defp translate({:type, _, :binary, [{:integer, _, num}, {:integer, _, 0}]}, _env),
     do: %Types.SizedBitstringL{size: num}
 
-  def translate({:<<>>, _, [{:"::", _, [{:_, _, _}, num]}]}, _env),
+  defp translate({:<<>>, _, [{:"::", _, [{:_, _, _}, num]}]}, _env),
     do: %Types.SizedBitstringL{size: num}
 
   # bit string with unit
 
-  def translate({:type, _, :binary, [{:integer, _, 0}, {:integer, _, num}]}, _env),
+  defp translate({:type, _, :binary, [{:integer, _, 0}, {:integer, _, num}]}, _env),
     do: %Types.BitstringWithUnitL{unit: num}
 
   # sized bit string with unit
 
-  def translate({:type, _, :binary, [{:integer, _, size}, {:integer, _, unit}]}, _env),
+  defp translate({:type, _, :binary, [{:integer, _, size}, {:integer, _, unit}]}, _env),
     do: %Types.SizedBitstringWithUnitL{unit: unit, size: size}
 
   # atoms
-  def translate(false, _env), do: %Types.BooleanL{value: false}
-  def translate({:atom, _, false}, _env), do: %Types.BooleanL{value: false}
+  defp translate(false, _env), do: %Types.BooleanL{value: false}
+  defp translate({:atom, _, false}, _env), do: %Types.BooleanL{value: false}
 
-  def translate(true, _env), do: %Types.BooleanL{value: true}
-  def translate({:atom, _, true}, _env), do: %Types.BooleanL{value: true}
+  defp translate(true, _env), do: %Types.BooleanL{value: true}
+  defp translate({:atom, _, true}, _env), do: %Types.BooleanL{value: true}
 
-  def translate(nil, _env), do: %Types.NilL{}
-  def translate({:atom, _, nil}, _env), do: %Types.NilL{}
+  defp translate(nil, _env), do: %Types.NilL{}
+  defp translate({:atom, _, nil}, _env), do: %Types.NilL{}
 
-  def translate(v, _env) when is_atom(v), do: %Types.AtomL{value: v}
-  def translate({:atom, _, v}, _env), do: %Types.AtomL{value: v}
+  defp translate(v, _env) when is_atom(v), do: %Types.AtomL{value: v}
+  defp translate({:atom, _, v}, _env), do: %Types.AtomL{value: v}
 
-  def translate({:%{}, _, []}, _env), do: %Types.EmptyMapL{}
+  defp translate({:%{}, _, []}, _env), do: %Types.EmptyMapL{}
 
-  def translate({:%, _, [module, _]}, _env), do: %Types.StructL{module: module}
+  defp translate({:%, _, [module, _]}, _env), do: %Types.StructL{module: module}
 
-  def translate({:%{}, _, args}, env) do
-    with {:ok, types} <- ParametrizedType.parse_args(args, env) do
+  defp translate({:%{}, _, args}, env) do
+    with {:ok, types} <- ParseHelpers.parse_args(args, env) do
       inner =
         Enum.map(types, fn %Types.TupleT{inner: [a, b]} ->
           case a do
@@ -137,118 +136,118 @@ defmodule TypeResolver.ParseHelpers.Literals do
     end
   end
 
-  def translate({:required, _, [t]}, env) do
+  defp translate({:required, _, [t]}, env) do
     with {:ok, t} <- ParseHelpers.parse(t, env) do
       %InternalRequired{value: t}
     end
   end
 
-  def translate({:optional, _, [t]}, env) do
+  defp translate({:optional, _, [t]}, env) do
     with {:ok, t} <- ParseHelpers.parse(t, env) do
       %InternalOptional{value: t}
     end
   end
 
-  def translate({a, b}, env) do
+  defp translate({a, b}, env) do
     with {:ok, a} <- ParseHelpers.parse(a, env),
          {:ok, b} <- ParseHelpers.parse(b, env) do
       %Types.TupleT{inner: [a, b]}
     end
   end
 
-  def translate({:type, _, :map_field_assoc, [k, v]}, env) do
+  defp translate({:type, _, :map_field_assoc, [k, v]}, env) do
     with {:ok, a} <- ParseHelpers.parse(k, env),
          {:ok, b} <- ParseHelpers.parse(v, env) do
       %Types.MapFieldAssocL{k: a, v: b}
     end
   end
 
-  def translate({:type, _, :map_field_exact, [k, v]}, env) do
+  defp translate({:type, _, :map_field_exact, [k, v]}, env) do
     with {:ok, a} <- ParseHelpers.parse(k, env),
          {:ok, b} <- ParseHelpers.parse(v, env) do
       make_exact_or_struct(a, b)
     end
   end
 
-  def translate({:type, _, :map, types}, env) do
-    with {:ok, types} <- ParametrizedType.parse_args(types, env) do
+  defp translate({:type, _, :map, types}, env) do
+    with {:ok, types} <- ParseHelpers.parse_args(types, env) do
       make_map_or_struct(types)
     end
   end
 
-  def translate({:type, _, :bitstring, []}, _env) do
+  defp translate({:type, _, :bitstring, []}, _env) do
     %Types.BitstringWithUnitL{unit: 1}
   end
 
-  def translate({:bitstring, _, []}, _env) do
+  defp translate({:bitstring, _, []}, _env) do
     %Types.BitstringWithUnitL{unit: 1}
   end
 
-  def translate({:type, _, :boolean, []}, _env) do
+  defp translate({:type, _, :boolean, []}, _env) do
     %Types.BooleanT{}
   end
 
-  def translate({:boolean, _, []}, _env) do
+  defp translate({:boolean, _, []}, _env) do
     %Types.BooleanT{}
   end
 
-  def translate({:type, _, :byte, []}, _env) do
+  defp translate({:type, _, :byte, []}, _env) do
     %Types.RangeL{from: 0, to: 255}
   end
 
-  def translate({:byte, _, []}, _env) do
+  defp translate({:byte, _, []}, _env) do
     %Types.RangeL{from: 0, to: 255}
   end
 
-  def translate({:type, _, :mfa, []}, _env) do
+  defp translate({:type, _, :mfa, []}, _env) do
     %Types.TupleT{inner: [%Types.AtomT{}, %Types.AtomT{}, %Types.RangeL{from: 0, to: 255}]}
   end
 
-  def translate({:mfa, _, []}, _env) do
+  defp translate({:mfa, _, []}, _env) do
     %Types.TupleT{inner: [%Types.AtomT{}, %Types.AtomT{}, %Types.RangeL{from: 0, to: 255}]}
   end
 
-  def translate({:type, _, :module, []}, _env) do
+  defp translate({:type, _, :module, []}, _env) do
     %Types.AtomT{}
   end
 
-  def translate({:module, _, []}, _env) do
+  defp translate({:module, _, []}, _env) do
     %Types.AtomT{}
   end
 
-  def translate({:type, _, :no_return, []}, _env) do
+  defp translate({:type, _, :no_return, []}, _env) do
     %Types.NoneT{}
   end
 
-  def translate({:no_return, _, []}, _env) do
+  defp translate({:no_return, _, []}, _env) do
     %Types.NoneT{}
   end
 
-  def translate({:type, _, :node, []}, _env) do
+  defp translate({:type, _, :node, []}, _env) do
     %Types.AtomT{}
   end
 
-  def translate({:node, _, []}, _env) do
+  defp translate({:node, _, []}, _env) do
     %Types.AtomT{}
   end
 
-  def translate({:type, _, :number, []}, _env) do
+  defp translate({:type, _, :number, []}, _env) do
     %Types.UnionT{inner: [%Types.IntegerT{}, %Types.FloatT{}]}
   end
 
-  def translate({:number, _, []}, _env) do
+  defp translate({:number, _, []}, _env) do
     %Types.UnionT{inner: [%Types.IntegerT{}, %Types.FloatT{}]}
   end
 
-  def translate({:type, _, :timeout, []}, _env) do
+  defp translate({:type, _, :timeout, []}, _env) do
     %Types.UnionT{inner: [%Types.AtomL{value: :infinity}, %Types.NonNegIntegerT{}]}
   end
 
-  def translate({:timeout, _, []}, _env) do
+  defp translate({:timeout, _, []}, _env) do
     %Types.UnionT{inner: [%Types.AtomL{value: :infinity}, %Types.NonNegIntegerT{}]}
   end
 
-  def translate({:remote_type, _, [{:atom, _, :elixir}, {:atom, _, :struct}, []]}, _env) do
+  defp translate({:remote_type, _, [{:atom, _, :elixir}, {:atom, _, :struct}, []]}, _env) do
     %Types.MapL{
       inner: [
         %Types.MapFieldExactL{k: %Types.AtomL{value: :__struct__}, v: %Types.AtomT{}},
@@ -257,7 +256,7 @@ defmodule TypeResolver.ParseHelpers.Literals do
     }
   end
 
-  def translate({:struct, _, []}, _env) do
+  defp translate({:struct, _, []}, _env) do
     %Types.MapL{
       inner: [
         %Types.MapFieldExactL{k: %Types.AtomL{value: :__struct__}, v: %Types.AtomT{}},
@@ -266,126 +265,126 @@ defmodule TypeResolver.ParseHelpers.Literals do
     }
   end
 
-  def translate({:type, _, :char, []}, _env) do
+  defp translate({:type, _, :char, []}, _env) do
     %Types.RangeL{from: 0, to: 0x10FFFF}
   end
 
-  def translate({:char, _, []}, _env) do
+  defp translate({:char, _, []}, _env) do
     %Types.RangeL{from: 0, to: 0x10FFFF}
   end
 
-  def translate({:type, _, :fun, []}, _env) do
+  defp translate({:type, _, :fun, []}, _env) do
     %Types.FunctionL{arity: :any}
   end
 
-  def translate({:fun, _, []}, _env) do
+  defp translate({:fun, _, []}, _env) do
     %Types.FunctionL{arity: :any}
   end
 
-  def translate({:type, _, :function, []}, _env) do
+  defp translate({:type, _, :function, []}, _env) do
     %Types.FunctionL{arity: :any}
   end
 
-  def translate({:list, _, []}, _env) do
+  defp translate({:list, _, []}, _env) do
     %Types.ListT{inner: [%Types.AnyT{}]}
   end
 
-  def translate({:type, _, :list, []}, _env) do
+  defp translate({:type, _, :list, []}, _env) do
     %Types.ListT{inner: [%Types.AnyT{}]}
   end
 
-  def translate({:maybe_improper_list, _, []}, _env) do
+  defp translate({:maybe_improper_list, _, []}, _env) do
     %Types.MaybeImproperListT{inner: [%Types.AnyT{}]}
   end
 
-  def translate({:type, _, :maybe_improper_list, []}, _env) do
+  defp translate({:type, _, :maybe_improper_list, []}, _env) do
     %Types.MaybeImproperListT{inner: [%Types.AnyT{}]}
   end
 
-  def translate({:type, _, :nonempty_maybe_improper_list, []}, _env) do
+  defp translate({:type, _, :nonempty_maybe_improper_list, []}, _env) do
     %Types.NonemptyMaybeImproperListT{inner: [%Types.AnyT{}]}
   end
 
-  def translate({:nonempty_maybe_improper_list, _, []}, _env) do
+  defp translate({:nonempty_maybe_improper_list, _, []}, _env) do
     %Types.NonemptyMaybeImproperListT{inner: [%Types.AnyT{}]}
   end
 
-  def translate({:function, _, []}, _env) do
+  defp translate({:function, _, []}, _env) do
     %Types.FunctionL{arity: :any}
   end
 
-  def translate({:type, _, :iodata, []}, _env) do
+  defp translate({:type, _, :iodata, []}, _env) do
     %Types.UnionT{inner: [io_list(), %Types.BinaryT{}]}
   end
 
-  def translate({:iodata, _, []}, _env) do
+  defp translate({:iodata, _, []}, _env) do
     %Types.UnionT{inner: [io_list(), %Types.BinaryT{}]}
   end
 
-  def translate({:type, _, :iolist, []}, _env), do: io_list()
+  defp translate({:type, _, :iolist, []}, _env), do: io_list()
 
-  def translate({:iolist, _, []}, _env), do: io_list()
+  defp translate({:iolist, _, []}, _env), do: io_list()
 
-  def translate({:keyword, _, []}, _env) do
+  defp translate({:keyword, _, []}, _env) do
     %Types.ListT{inner: [%Types.TupleT{inner: [%Types.AtomT{}, %Types.AnyT{}]}]}
   end
 
-  def translate({:keyword, _, types}, env) do
-    with {:ok, args} <- ParametrizedType.parse_args(types, env) do
+  defp translate({:keyword, _, types}, env) do
+    with {:ok, args} <- ParseHelpers.parse_args(types, env) do
       inner = Enum.map(args, fn arg -> %Types.TupleT{inner: [%Types.AtomT{}, arg]} end)
       %Types.ListT{inner: inner |> Enum.reverse()}
     end
   end
 
-  def translate({:remote_type, _, [{:atom, _, :elixir}, {:atom, _, :keyword}, []]}, _env) do
+  defp translate({:remote_type, _, [{:atom, _, :elixir}, {:atom, _, :keyword}, []]}, _env) do
     %Types.ListT{inner: [%Types.TupleT{inner: [%Types.AtomT{}, %Types.AnyT{}]}]}
   end
 
-  def translate({:remote_type, _, [{:atom, _, :elixir}, {:atom, _, :keyword}, types]}, env) do
-    with {:ok, args} <- ParametrizedType.parse_args(types, env) do
+  defp translate({:remote_type, _, [{:atom, _, :elixir}, {:atom, _, :keyword}, types]}, env) do
+    with {:ok, args} <- ParseHelpers.parse_args(types, env) do
       inner = Enum.map(args, fn arg -> %Types.TupleT{inner: [%Types.AtomT{}, arg]} end)
       %Types.ListT{inner: inner |> Enum.reverse()}
     end
   end
 
-  def translate({:remote_type, _, [{:atom, _, :elixir}, {:atom, _, :charlist}, []]}, _env) do
+  defp translate({:remote_type, _, [{:atom, _, :elixir}, {:atom, _, :charlist}, []]}, _env) do
     %Types.ListT{inner: %Types.RangeL{from: 0, to: 0x10FFFF}}
   end
 
-  def translate({:charlist, _, []}, _env) do
+  defp translate({:charlist, _, []}, _env) do
     %Types.ListT{inner: %Types.RangeL{from: 0, to: 0x10FFFF}}
   end
 
-  def translate({:nonempty_charlist, _, []}, _env) do
+  defp translate({:nonempty_charlist, _, []}, _env) do
     %Types.NonemptyListT{inner: %Types.RangeL{from: 0, to: 0x10FFFF}}
   end
 
-  def translate(
-        {:remote_type, _, [{:atom, _, :elixir}, {:atom, _, :nonempty_charlist}, []]},
-        _env
-      ) do
+  defp translate(
+         {:remote_type, _, [{:atom, _, :elixir}, {:atom, _, :nonempty_charlist}, []]},
+         _env
+       ) do
     %Types.NonemptyListT{inner: %Types.RangeL{from: 0, to: 0x10FFFF}}
   end
 
-  def translate({:remote_type, _, [{:atom, _, :elixir}, {:atom, _, :as_boolean}, [arg]]}, env) do
+  defp translate({:remote_type, _, [{:atom, _, :elixir}, {:atom, _, :as_boolean}, [arg]]}, env) do
     with {:ok, t} <- ParseHelpers.parse(arg, env) do
       t
     end
   end
 
-  def translate({:as_boolean, _, [arg]}, env) do
+  defp translate({:as_boolean, _, [arg]}, env) do
     with {:ok, t} <- ParseHelpers.parse(arg, env) do
       t
     end
   end
 
-  def translate(list, env) when is_list(list) do
-    with {:ok, args} <- ParametrizedType.parse_args(list, env) do
+  defp translate(list, env) when is_list(list) do
+    with {:ok, args} <- ParseHelpers.parse_args(list, env) do
       %Types.ListT{inner: args |> Enum.reverse()}
     end
   end
 
-  def translate(_a, _env) do
+  defp translate(_a, _env) do
     {:error, :cannot_parse}
   end
 

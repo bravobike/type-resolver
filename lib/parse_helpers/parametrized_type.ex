@@ -7,7 +7,7 @@ defmodule TypeResolver.ParseHelpers.ParametrizedType do
   def parse(_, _env), do: {:error, :cannot_parse}
 
   defp parse_helper(name, args, env) do
-    with {:ok, resolved} <- parse_args(args, env) do
+    with {:ok, resolved} <- ParseHelpers.parse_args(args, env) do
       case translate(name, resolved |> Enum.reverse()) do
         {:error, _} = err -> err
         res -> {:ok, res}
@@ -34,18 +34,4 @@ defmodule TypeResolver.ParseHelpers.ParametrizedType do
     do: %Types.NonemptyMaybeImproperListT{inner: arg1, termination: arg2}
 
   defp translate(_, _), do: {:error, :cannot_parse}
-
-  def parse_args(args, env) when is_list(args) do
-    Enum.reduce(args, {:ok, []}, fn
-      arg, {:ok, ret} ->
-        with {:ok, parsed} <- ParseHelpers.parse(arg, env) do
-          {:ok, [parsed | ret]}
-        end
-
-      _arg, {:error, _} = err ->
-        err
-    end)
-  end
-
-  def parse_args(_, _env), do: {:error, :cannot_parse}
 end

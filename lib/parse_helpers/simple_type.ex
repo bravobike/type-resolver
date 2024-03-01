@@ -37,21 +37,21 @@ defmodule TypeResolver.ParseHelpers.SimpleType do
     end
   end
 
-  def translate(:any), do: Types.AnyT
-  def translate(:term), do: Types.AnyT
-  def translate(:binary), do: Types.BinaryT
-  def translate(:none), do: Types.NoneT
-  def translate(:atom), do: Types.AtomT
-  def translate(:pid), do: Types.PidT
-  def translate(:port), do: Types.PortT
-  def translate(:reference), do: Types.ReferenceT
-  def translate(:map), do: Types.MapAnyT
-  def translate(:empty_map), do: Types.EmptyMapL
-  def translate(:tuple), do: Types.TupleAnyT
-  def translate(:float), do: Types.FloatT
-  def translate(:integer), do: Types.IntegerT
-  def translate(:non_neg_integer), do: Types.NonNegIntegerT
-  def translate(:neg_integer), do: Types.NegIntegerT
-  def translate(:pos_integer), do: Types.PosIntegerT
-  def translate(_), do: {:error, :cannot_parse}
+  defp translate(:any), do: Types.AnyT
+  defp translate(:term), do: Types.AnyT
+  defp translate(:binary), do: Types.BinaryT
+  defp translate(:none), do: Types.NoneT
+  defp translate(:atom), do: Types.AtomT
+  defp translate(:pid), do: Types.PidT
+  defp translate(:port), do: Types.PortT
+  defp translate(:reference), do: Types.ReferenceT
+  defp translate(:map), do: Types.MapAnyT
+  defp translate(:empty_map), do: Types.EmptyMapL
+  defp translate(:tuple), do: Types.TupleAnyT
+  defp translate(:float), do: Types.FloatT
+  defp translate(:integer), do: Types.IntegerT
+  defp translate(:non_neg_integer), do: Types.NonNegIntegerT
+  defp translate(:neg_integer), do: Types.NegIntegerT
+  defp translate(:pos_integer), do: Types.PosIntegerT
+  defp translate(_), do: {:error, :cannot_parse}
 end

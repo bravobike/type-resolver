@@ -8,7 +8,7 @@ defmodule TypeResolver.ParseHelpers.UserTypes do
         {:error, :cannot_parse}
 
       {t, params} ->
-        with {:ok, args} <- parse_args(args, env) do
+        with {:ok, args} <- ParseHelpers.parse_args(args, env) do
           lookup = ParseHelpers.prepare_args(params, args)
           env = Env.with_args(env, lookup)
           ParseHelpers.parse(t, env)
@@ -18,17 +18,5 @@ defmodule TypeResolver.ParseHelpers.UserTypes do
 
   def parse(_a, _env) do
     {:error, :cannot_parse}
-  end
-
-  def parse_args(args, env) when is_list(args) do
-    Enum.reduce(args, {:ok, []}, fn
-      arg, {:ok, ret} ->
-        with {:ok, parsed} <- ParseHelpers.parse(arg, env) do
-          {:ok, [parsed | ret]}
-        end
-
-      _arg, {:error, _} = err ->
-        err
-    end)
   end
 end

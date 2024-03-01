@@ -3,7 +3,7 @@ defmodule TypeResolver.ParseHelpers.RemoteTypes do
   alias TypeResolver.ParseHelpers
 
   def parse({:remote_type, _, [{:atom, _, path}, {:atom, _, type}, args]}, env) do
-    with {:ok, args} <- parse_args(args, env) do
+    with {:ok, args} <- ParseHelpers.parse_args(args, env) do
       env = Env.with_target_module(env, path)
       ParseHelpers.resolve(env, type, args)
     end
@@ -24,17 +24,5 @@ defmodule TypeResolver.ParseHelpers.RemoteTypes do
 
   def parse_user_defined(_, _) do
     {:error, :cannot_parse}
-  end
-
-  def parse_args(args, env) when is_list(args) do
-    Enum.reduce(args, {:ok, []}, fn
-      arg, {:ok, ret} ->
-        with {:ok, parsed} <- ParseHelpers.parse(arg, env) do
-          {:ok, [parsed | ret]}
-        end
-
-      _arg, {:error, _} = err ->
-        err
-    end)
   end
 end
