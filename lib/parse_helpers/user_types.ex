@@ -1,5 +1,5 @@
-defmodule TypeResolver.UserTypes do
-  require TypeResolver
+defmodule TypeResolver.ParseHelpers.UserTypes do
+  alias TypeResolver.ParseHelpers
   alias TypeResolver.Env
 
   def parse({user_type, _, args}, env) do
@@ -9,15 +9,11 @@ defmodule TypeResolver.UserTypes do
 
       {t, params} ->
         with {:ok, args} <- parse_args(args, env) do
-          lookup = TypeResolver.prepare_args(params, args)
+          lookup = ParseHelpers.prepare_args(params, args)
           env = Env.with_args(env, lookup)
-          TypeResolver.parse(t, env)
+          ParseHelpers.parse(t, env)
         end
     end
-  end
-
-  def parse(%_{} = s, _env) do
-    {:ok, s}
   end
 
   def parse(_a, _env) do
@@ -27,7 +23,7 @@ defmodule TypeResolver.UserTypes do
   def parse_args(args, env) when is_list(args) do
     Enum.reduce(args, {:ok, []}, fn
       arg, {:ok, ret} ->
-        with {:ok, parsed} <- TypeResolver.parse(arg, env) do
+        with {:ok, parsed} <- ParseHelpers.parse(arg, env) do
           {:ok, [parsed | ret]}
         end
 

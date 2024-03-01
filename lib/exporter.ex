@@ -1,4 +1,23 @@
 defmodule TypeExporter do
+  @moduledoc """
+  A module to export types to a submodule called __MODULE__.ExportedTypes.
+
+  The generated module contains a functions `types` that returns all
+  types of __MODULE__ as returned by `Code.Typespec.fetch_types/1`.
+
+  Use this module to expose types of your module to be used with this library.
+  Directly calling `Code.Typespec.fetch_types/1` onto the modules often
+  returns errors, since it may have no beam file at the time.
+
+  To use this module, call the use-Macro:
+
+      defmodule MyModule do
+        use TypeExporter 
+
+        # module code ...
+      end
+  """
+
   defmacro __using__(_opts) do
     quote do
       @after_compile {TypeExporter, :export_types}
@@ -17,10 +36,4 @@ defmodule TypeExporter do
     end
     """)
   end
-end
-
-defmodule B do
-  use TypeExporter
-
-  @type my_type :: non_neg_integer()
 end

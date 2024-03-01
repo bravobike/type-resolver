@@ -1,6 +1,6 @@
-defmodule TypeResolver.ParametrizedType do
-  use TypedStruct
+defmodule TypeResolver.ParseHelpers.ParametrizedType do
   alias TypeResolver.Types
+  alias TypeResolver.ParseHelpers
 
   def parse({:type, _, n, args}, env), do: parse_helper(n, args, env)
   def parse({n, _, args}, env), do: parse_helper(n, args, env)
@@ -38,7 +38,7 @@ defmodule TypeResolver.ParametrizedType do
   def parse_args(args, env) when is_list(args) do
     Enum.reduce(args, {:ok, []}, fn
       arg, {:ok, ret} ->
-        with {:ok, parsed} <- TypeResolver.parse(arg, env) do
+        with {:ok, parsed} <- ParseHelpers.parse(arg, env) do
           {:ok, [parsed | ret]}
         end
 

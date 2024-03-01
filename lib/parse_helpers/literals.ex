@@ -1,5 +1,6 @@
-defmodule TypeResolver.Literals do
-  alias TypeResolver.ParametrizedType
+defmodule TypeResolver.ParseHelpers.Literals do
+  alias TypeResolver.ParseHelpers
+  alias TypeResolver.ParseHelpers.ParametrizedType
   alias TypeResolver.Types
 
   use TypedStruct
@@ -25,7 +26,7 @@ defmodule TypeResolver.Literals do
 
   # non empty list
   def translate([{:..., _, nil}, type], env) do
-    with {:ok, type} <- TypeResolver.parse(type, env) do
+    with {:ok, type} <- ParseHelpers.parse(type, env) do
       %Types.NonemptyListT{inner: type}
     end
   end
@@ -52,7 +53,7 @@ defmodule TypeResolver.Literals do
   def translate({:type, _, nil, []}, _env), do: %Types.EmptyListL{}
 
   def translate([t], env) do
-    case TypeResolver.parse(t, env) do
+    case ParseHelpers.parse(t, env) do
       {:ok, t} -> %Types.ListT{inner: t}
       {:error, _} = err -> err
     end
@@ -137,34 +138,34 @@ defmodule TypeResolver.Literals do
   end
 
   def translate({:required, _, [t]}, env) do
-    with {:ok, t} <- TypeResolver.parse(t, env) do
+    with {:ok, t} <- ParseHelpers.parse(t, env) do
       %InternalRequired{value: t}
     end
   end
 
   def translate({:optional, _, [t]}, env) do
-    with {:ok, t} <- TypeResolver.parse(t, env) do
+    with {:ok, t} <- ParseHelpers.parse(t, env) do
       %InternalOptional{value: t}
     end
   end
 
   def translate({a, b}, env) do
-    with {:ok, a} <- TypeResolver.parse(a, env),
-         {:ok, b} <- TypeResolver.parse(b, env) do
+    with {:ok, a} <- ParseHelpers.parse(a, env),
+         {:ok, b} <- ParseHelpers.parse(b, env) do
       %Types.TupleT{inner: [a, b]}
     end
   end
 
   def translate({:type, _, :map_field_assoc, [k, v]}, env) do
-    with {:ok, a} <- TypeResolver.parse(k, env),
-         {:ok, b} <- TypeResolver.parse(v, env) do
+    with {:ok, a} <- ParseHelpers.parse(k, env),
+         {:ok, b} <- ParseHelpers.parse(v, env) do
       %Types.MapFieldAssocL{k: a, v: b}
     end
   end
 
   def translate({:type, _, :map_field_exact, [k, v]}, env) do
-    with {:ok, a} <- TypeResolver.parse(k, env),
-         {:ok, b} <- TypeResolver.parse(v, env) do
+    with {:ok, a} <- ParseHelpers.parse(k, env),
+         {:ok, b} <- ParseHelpers.parse(v, env) do
       make_exact_or_struct(a, b)
     end
   end
@@ -367,13 +368,13 @@ defmodule TypeResolver.Literals do
   end
 
   def translate({:remote_type, _, [{:atom, _, :elixir}, {:atom, _, :as_boolean}, [arg]]}, env) do
-    with {:ok, t} <- TypeResolver.parse(arg, env) do
+    with {:ok, t} <- ParseHelpers.parse(arg, env) do
       t
     end
   end
 
   def translate({:as_boolean, _, [arg]}, env) do
-    with {:ok, t} <- TypeResolver.parse(arg, env) do
+    with {:ok, t} <- ParseHelpers.parse(arg, env) do
       t
     end
   end

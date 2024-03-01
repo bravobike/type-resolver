@@ -1,4 +1,4 @@
-defmodule TypeResolver.SimpleType do
+defmodule TypeResolver.ParseHelpers.SimpleType do
   use TypedStruct
   alias TypeResolver.Types
 
