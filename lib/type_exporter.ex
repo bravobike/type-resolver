@@ -1,4 +1,4 @@
-defmodule TypeExporter do
+defmodule TypeResolver.TypeExporter do
   @moduledoc """
   A module to export types to a submodule called __MODULE__.ExportedTypes.
 
@@ -20,7 +20,7 @@ defmodule TypeExporter do
 
   defmacro __using__(_opts) do
     quote do
-      @after_compile {TypeExporter, :export_types}
+      @after_compile {TypeResolver.TypeExporter, :export_types}
     end
   end
 

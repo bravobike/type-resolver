@@ -1,5 +1,5 @@
 defmodule AllTypes do
-  use TypeExporter
+  use TypeResolver.TypeExporter
   use TypedStruct
   alias TypeResolver.Test.Types
 

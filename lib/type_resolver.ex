@@ -34,7 +34,14 @@ defmodule TypeResolver do
 
   To handle this problem, we provide the module `TypeResolver.TypeExporter`.
   This module takes care of types being exported and makes them available
-  at macro expansion time.
+  at macro expansion time. The module has to be used in the remote module
+  that contains the type, as follows: 
+
+      defmodule MyRemoteModule do 
+        use TypeResolver.TypeExporter
+
+        @type my_remote_t :: ...
+      end
 
   ## Limitations
 
