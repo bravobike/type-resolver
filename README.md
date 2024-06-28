@@ -10,15 +10,15 @@ handle structs representing types.
 
 ## Rationale
 
-Often we want to analyse spec-types in macros and derive functionality
-from these types. Analysing and working with AST from `Code.Typespec` or
+Often we want to analyze spec-types in macros and derive functionality
+from these types. Analyzing and working with AST from `Code.Typespec` or
 Erlang AST is challenging and cumbersome. Furthermore, there is no
 standalone library that resolves user-defined types, built-in types and
 remote-types. This library fills this gap.
 
 ## Usage
 
-The library offers the macro `TypeResolver.resolve/1` that can be used
+The library offers the macro `TypeResolver.resolve/1`, that can be used
 as follows:
 
 ```elixir
@@ -55,7 +55,7 @@ end
 
 ## Limitations
 
-- Currently this library cannot handle recursive types and does not detect
+- Currently, this library cannot handle recursive types and does not detect
   them. When using recursive times, compilation will be stuck in an infinite
   recursion.
 - Struct types don't get their member resolved 
