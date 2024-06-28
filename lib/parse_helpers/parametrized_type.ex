@@ -1,6 +1,6 @@
 defmodule TypeResolver.ParseHelpers.ParametrizedType do
-  alias TypeResolver.Types
   alias TypeResolver.ParseHelpers
+  alias TypeResolver.Types
 
   def parse({:type, _, n, args}, env), do: parse_helper(n, args, env)
   def parse({n, _, args}, env), do: parse_helper(n, args, env)

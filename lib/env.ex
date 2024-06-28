@@ -1,28 +1,32 @@
 defmodule TypeResolver.Env do
+  @moduledoc """
+  This module defines the environment that is used to
+  resolve types.
+
+  It consists of the following:
+
+  - a target module the currently resolved types resides in
+  - a lookup of user types of the current module
+  - maybe the args for current the type 
+  """
   use TypedStruct
 
   alias __MODULE__
 
   typedstruct do
     field(:target_module, module())
-    field(:caller_module, module())
     field(:user_types, map())
-    field(:args, map())
+    field(:args, map() | nil)
   end
 
-  @spec make(module(), module(), map()) :: Env.t()
-  def make(target, current, user_types) do
-    %Env{target_module: target, caller_module: current, user_types: user_types}
+  @spec make(module(), map()) :: Env.t()
+  def make(target, user_types) do
+    %Env{target_module: target, user_types: user_types}
   end
 
   @spec with_target_module(Env.t(), module()) :: Env.t()
   def with_target_module(env, module) do
     %Env{env | target_module: module}
-  end
-
-  @spec with_caller_module(Env.t(), module()) :: Env.t()
-  def with_caller_module(env, module) do
-    %Env{env | caller_module: module}
   end
 
   @spec with_user_types(Env.t(), map()) :: Env.t()
@@ -39,4 +43,6 @@ defmodule TypeResolver.Env do
   def with_args(env, params) do
     %Env{env | args: params}
   end
+
+  def clear_user_types(env), do: with_user_types(env, %{})
 end

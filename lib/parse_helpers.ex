@@ -1,14 +1,16 @@
 defmodule TypeResolver.ParseHelpers do
   alias TypeResolver.Env
-  alias TypeResolver.ParseHelpers.RemoteTypes
+  alias TypeResolver.ParseHelpers.AnnotatedType
   alias TypeResolver.ParseHelpers.Literals
   alias TypeResolver.ParseHelpers.ParametrizedType
+  alias TypeResolver.ParseHelpers.RemoteTypes
   alias TypeResolver.ParseHelpers.SimpleType
   alias TypeResolver.ParseHelpers.UserTypes
   alias TypeResolver.ParseHelpers.Vars
 
   def parse(expr, env) do
     with {:error, :cannot_parse} <- SimpleType.parse(expr),
+         {:error, :cannot_parse} <- AnnotatedType.parse(expr, env),
          {:error, :cannot_parse} <- ParametrizedType.parse(expr, env),
          {:error, :cannot_parse} <- Literals.parse(expr, env),
          {:error, :cannot_parse} <- RemoteTypes.parse(expr, env),
@@ -30,15 +32,16 @@ defmodule TypeResolver.ParseHelpers do
 
           case Code.ensure_compiled(exported_module) do
             {:module, _} ->
-              apply(exported_module, :export_types, [])
+              exported_module.types()
               |> Enum.find(fn {:type, {t, _, _}} -> t == type end)
 
             {:error, _} ->
-              raise "no types can be found"
+              raise "no types can be found for type #{type} in module #{env.target_module}. Env: #{inspect(env)}"
           end
 
         {:ok, specs} ->
-          specs |> Enum.find(fn {:type, {t, _, _}} -> t == type end)
+          specs
+          |> Enum.find(fn {:type, {t, _, _}} -> t == type end)
       end
 
     t |> parse(env |> Env.with_args(prepare_args(vars, args)))

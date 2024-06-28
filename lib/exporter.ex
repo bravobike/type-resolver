@@ -12,7 +12,7 @@ defmodule TypeExporter do
   To use this module, call the use-Macro:
 
       defmodule MyModule do
-        use TypeExporter 
+        use TypeExporter
 
         # module code ...
       end

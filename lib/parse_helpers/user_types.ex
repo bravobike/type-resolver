@@ -1,6 +1,6 @@
 defmodule TypeResolver.ParseHelpers.UserTypes do
-  alias TypeResolver.ParseHelpers
   alias TypeResolver.Env
+  alias TypeResolver.ParseHelpers
 
   def parse({user_type, _, args}, env) do
     case Env.get_user_type(env, user_type) do

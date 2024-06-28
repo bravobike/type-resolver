@@ -1,62 +1,109 @@
 defmodule TypeResolver do
   @moduledoc """
-  Documentation for `TypeResolver`.
+  Type resolver is a library to resolve spec-types at compile time.
+  That is, reducing the specs to only native types by resolving user-defined,
+  built-in and remote types. The result is a type expressed in easy to
+  handle structs of types.
+
+  ## Rational
+
+  Often times we want to analyse spec-types in macros and derive functionality
+  from these types. Analysing and working with AST from `Code.Typespec` or
+  Erlang AST is challenging and cumbersome. Furthermore, there is no
+  standalone library that resolves user-defined types, built-in types and
+  remote-types. This library fills this gap.
+
+  ## Usage
+
+  The library offers the macro `TypeResolver.resolve/1` that can be used
+  as follows:
+
+      resolve(integer() | String.t())
+
+  It returns the following representation:
+
+      %TypeResolver.UnionT{
+        inner: [%TypeResolver.Types.IntegerT{}, %TypeResolver.Types.BinaryT{}]
+      }
+
+  ## Type exporter
+
+  To resolve remote types, we rely on `Code.Typespec.fetch_types/1`. For
+  this function to work, the module has to be compiled into a beam file,
+  which cannot always be ensured at macro expansion time.
+
+  To handle this problem, we provide the module `TypeResolver.TypeExporter`.
+  This module takes care of types being exported and makes them available
+  at macro expansion time.
+
+  ## Limitations
+
+  - Currently this library cannot handle recursive types and does not detect
+    them. When using recursive times, compilation will be stuck in an infinite
+    recursion.
+  - Struct types don't get their member resolved 
   """
 
-  alias TypeResolver.ParseHelpers
   alias TypeResolver.Env
+  alias TypeResolver.ParseHelpers
 
-  defmacro resolve(module, type) do
-    caller_module = __CALLER__.module
+  @type ast_t() :: tuple()
 
-    target_module =
-      case module do
-        {:__aliases__, _, _} = a -> Macro.expand(a, __CALLER__)
-        e -> e
-      end
+  @doc """
+  This marco takes a spec expression and returns a struct-based representation
+  of the types, resolved to only basic spec-types, e.g:
 
-    quote do
-      env = Env.make(unquote(target_module), unquote(caller_module), Map.new())
-      TypeResolver.ParseHelpers.resolve(env, unquote(type))
-    end
-  end
+      resolve(integer() | String.t())
 
+  returns the following representation:
+
+      %TypeResolver.UnionT{
+        inner: [%TypeResolver.Types.IntegerT{}, %TypeResolver.Types.BinaryT{}]
+      }
+
+  Raises if types cannot be resolved.
+  """
+  @spec resolve(ast_t()) :: TypeResolver.Types.t()
   defmacro resolve({{:., _, [first, second]}, _, args}) do
-    caller_module = __CALLER__.module
+    target_module = first |> resolve_aliases(__CALLER__)
+    second = resolve_aliases(second, __CALLER__)
+    args = args |> resolve_aliases(__CALLER__)
 
-    target_module =
-      case first do
-        {:__aliases__, _, _} = a -> Macro.expand(a, __CALLER__)
-        e -> e
-      end
-
-    args = Macro.escape(args)
+    env = Env.make(target_module, Map.new())
+    res = TypeResolver.ParseHelpers.resolve(env, second, args)
 
     quote do
-      env = Env.make(unquote(target_module), unquote(caller_module), Map.new())
-      TypeResolver.ParseHelpers.resolve(env, unquote(second), unquote(args))
+      unquote(res |> Macro.escape())
     end
   end
 
+  @spec resolve(ast_t()) :: TypeResolver.Types.t()
   defmacro resolve(other) do
     current_module = __CALLER__.module
 
-    {other, _} =
-      Macro.prewalk(other, nil, fn
-        {:__aliases__, _, _} = a, acc -> {Macro.expand(a, __CALLER__), acc}
-        a, acc -> {a, acc}
-      end)
+    other = resolve_aliases(other, __CALLER__)
 
     local_user_types =
       Module.get_attribute(__CALLER__.module, :type)
       |> ParseHelpers.parse_user_types()
+      |> Enum.map(fn {n, p} -> {n, resolve_aliases(p, __CALLER__)} end)
       |> Map.new()
 
-    env = Env.make(current_module, nil, local_user_types)
+    env = Env.make(current_module, local_user_types)
     res = ParseHelpers.parse(other, env)
 
     quote do
-      unquote(Macro.escape(res))
+      unquote(res |> Macro.escape())
     end
+  end
+
+  defp resolve_aliases(ast, env) do
+    {ast, _} =
+      Macro.prewalk(ast, nil, fn
+        {:__aliases__, _, _} = a, acc -> {Macro.expand(a, env), acc}
+        a, acc -> {a, acc}
+      end)
+
+    ast
   end
 end
