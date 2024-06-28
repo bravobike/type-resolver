@@ -21,13 +21,18 @@ remote-types. This library fills this gap.
 The library offers the macro `TypeResolver.resolve/1` that can be used
 as follows:
 
-    resolve(integer() | String.t())
+```elixir
+TypeResolver.resolve(integer() | String.t())
+```
 
 It returns the following representation:
 
-    %TypeResolver.UnionT{
-      inner: [%TypeResolver.Types.IntegerT{}, %TypeResolver.Types.BinaryT{}]
-    }
+
+```elixir
+%TypeResolver.UnionT{
+  inner: [%TypeResolver.Types.IntegerT{}, %TypeResolver.Types.BinaryT{}]
+}
+```
 
 ## Type exporter
 
