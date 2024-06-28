@@ -6,11 +6,11 @@
 Type resolver is a library to resolve spec-types at compile time.
 That is, reducing the specs to only native types by resolving user-defined,
 built-in and remote types. The result is a type expressed in easy to
-handle structs of types.
+handle structs representing types.
 
 ## Rationale
 
-Often times we want to analyse spec-types in macros and derive functionality
+Often we want to analyse spec-types in macros and derive functionality
 from these types. Analysing and working with AST from `Code.Typespec` or
 Erlang AST is challenging and cumbersome. Furthermore, there is no
 standalone library that resolves user-defined types, built-in types and
@@ -59,23 +59,6 @@ end
   them. When using recursive times, compilation will be stuck in an infinite
   recursion.
 - Struct types don't get their member resolved 
-
-## Installation
-
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `type_resolver` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [
-    {:type_resolver, "~> 0.1.0"}
-  ]
-end
-```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/type_resolver>.
 
 ## License
 Copyright © 2024 Bravobike GmbH and Contributors
