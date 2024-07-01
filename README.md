@@ -1,6 +1,6 @@
 # TypeResolver
 
-![Tests](https://github.com/bravobike/type-resolver/actions/workflows/main.yaml/badge.svg)
+![Tests](https://github.com/bravobike/type-resolver/actions/workflows/main.yml/badge.svg)
 [![Hex version badge](https://img.shields.io/hexpm/v/type_resolver.svg)](https://hex.pm/packages/type_resolver)
 
 Type resolver is a library to resolve spec-types at compile time.
