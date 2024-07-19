@@ -67,6 +67,7 @@ of our own code.*
   them. When using recursive times, compilation will be stuck in an infinite
   recursion.
 - Struct types don't get their member resolved 
+- Doesn't work with opaque types
 
 ## License
 Copyright © 2024 Bravobike GmbH and Contributors

@@ -57,6 +57,7 @@ defmodule TypeResolver do
     them. When using recursive times, compilation will be stuck in an infinite
     recursion.
   - Struct types don't get their member resolved 
+  - doesn't work with opaque types
   """
 
   alias TypeResolver.Env
