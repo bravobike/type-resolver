@@ -1,6 +1,12 @@
 defmodule TypeResolver.Types do
   @moduledoc """
   This modules defines a struct based representation of spec types.
+  The types are derived from the official TypeSpec doc by Elixir:
+
+  https://hexdocs.pm/elixir/1.13.4/typespecs.html
+
+  The postfix T stands for type, while the postfix L stands
+  for literal.
   """
   use TypedStruct
 

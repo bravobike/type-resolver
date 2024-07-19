@@ -26,6 +26,10 @@ defmodule TypeResolver do
         inner: [%TypeResolver.Types.IntegerT{}, %TypeResolver.Types.BinaryT{}]
       }
 
+  The library is also capable of resolving type parameters.
+
+  For a complete list of result-types, see `TypeResolver.Types`.
+
   ## Type exporter
 
   To resolve remote types, we rely on `Code.Typespec.fetch_types/1`. For
@@ -42,6 +46,10 @@ defmodule TypeResolver do
 
         @type my_remote_t :: ...
       end
+
+  *Note, that this is not a problem for library code since for dependencies,
+  all files have been compiled and written to beam-files before the compilation
+  of our own code.*
 
   ## Limitations
 

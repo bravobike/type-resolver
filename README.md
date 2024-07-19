@@ -3,7 +3,7 @@
 ![Tests](https://github.com/bravobike/type-resolver/actions/workflows/main.yml/badge.svg)
 [![Hex version badge](https://img.shields.io/hexpm/v/type_resolver.svg)](https://hex.pm/packages/type_resolver)
 
-Type resolver is a library to resolve spec-types at compile time.
+TypeResolver is a library to resolve spec-types at compile time.
 That is, reducing the specs to only native types by resolving user-defined,
 built-in and remote types. The result is a type expressed in easy to
 handle structs representing types.
@@ -34,6 +34,10 @@ It returns the following representation:
 }
 ```
 
+The library is also capable of resolving type parameters.
+
+For a complete list of result-types, see `TypeResolver.Types`.
+
 ## Type exporter
 
 To resolve remote types, we rely on `Code.Typespec.fetch_types/1`. For
@@ -52,6 +56,10 @@ defmodule MyRemoteModule do
   @type my_remote_t :: ...
 end
 ```
+
+*Note, that this is not a problem for library code since for dependencies,
+all files have been compiled and written to beam-files before the compilation
+of our own code.*
 
 ## Limitations
 
