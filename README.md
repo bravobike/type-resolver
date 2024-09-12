@@ -30,7 +30,7 @@ It returns the following representation:
 
 ```elixir
 %TypeResolver.UnionT{
-  inner: [%TypeResolver.Types.IntegerT{}, %TypeResolver.Types.BinaryT{}]
+    inner: [%TypeResolver.Types.IntegerT{}, %NamedType{inner: %TypeResolver.Types.BinaryT{} name: :t, module: String}]
 }
 ```
 
