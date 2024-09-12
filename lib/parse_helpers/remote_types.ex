@@ -7,7 +7,7 @@ defmodule TypeResolver.ParseHelpers.RemoteTypes do
       env = Env.with_target_module(env, path) |> Env.clear_user_types()
 
       with {:ok, t} <- ParseHelpers.resolve(env, type, args) do
-        {:ok, %TypeResolver.Types.RemoteType{inner: t, module: path, name: type}}
+        {:ok, %TypeResolver.Types.NamedType{inner: t, module: path, name: type}}
       end
     end
   end
@@ -17,7 +17,7 @@ defmodule TypeResolver.ParseHelpers.RemoteTypes do
       env = Env.with_target_module(env, mod) |> Env.clear_user_types()
 
       with {:ok, t} <- ParseHelpers.resolve(env, name, args) do
-        {:ok, %TypeResolver.Types.RemoteType{inner: t, module: mod, name: name}}
+        {:ok, %TypeResolver.Types.NamedType{inner: t, module: mod, name: name}}
       end
     end
   end

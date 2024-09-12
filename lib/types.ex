@@ -314,7 +314,7 @@ defmodule TypeResolver.Types do
     """
   end
 
-  typedstruct module: RemoteType do
+  typedstruct module: NamedType do
     @moduledoc """
     Representation of the spec of an empty list-literal, e.g. `[]`
     """
@@ -337,7 +337,7 @@ defmodule TypeResolver.Types do
   @type t ::
           AnyT.t()
           | NoneT.t()
-          | RemoteType.t()
+          | NamedType.t()
           | AtomT.t()
           | MapAnyT.t()
           | EmptyMapL.t()

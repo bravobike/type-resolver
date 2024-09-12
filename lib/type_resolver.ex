@@ -90,7 +90,7 @@ defmodule TypeResolver do
     res =
       with {:ok, res} <- TypeResolver.ParseHelpers.resolve(env, second, args) do
         {:ok,
-         %TypeResolver.Types.RemoteType{
+         %TypeResolver.Types.NamedType{
            inner: res,
            name: second,
            module: target_module

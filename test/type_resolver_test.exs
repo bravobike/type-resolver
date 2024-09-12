@@ -567,8 +567,8 @@ defmodule TypeResolverTest do
                    },
                    %TypeResolver.Types.MapFieldAssocL{
                      k: %TypeResolver.Types.IntegerT{},
-                     v: %TypeResolver.Types.RemoteType{
-                       inner: %TypeResolver.Types.RemoteType{
+                     v: %TypeResolver.Types.NamedType{
+                       inner: %TypeResolver.Types.NamedType{
                          name: :my_type_there,
                          module: TypeResolverTest,
                          inner: %TypeResolver.Types.BinaryT{}
@@ -1006,10 +1006,10 @@ defmodule TypeResolverTest do
       assert {:ok,
               %Types.UnionT{
                 inner: [
-                  %Types.RemoteType{
+                  %Types.NamedType{
                     module: T,
                     name: :a,
-                    inner: %Types.RemoteType{
+                    inner: %Types.NamedType{
                       inner: %Types.BinaryT{},
                       module: TypeResolver.Test.Types2,
                       name: :a
@@ -1034,8 +1034,8 @@ defmodule TypeResolverTest do
     test "resolve a indrect local remote type directly" do
       assert {
                :ok,
-               %TypeResolver.Types.RemoteType{
-                 inner: %TypeResolver.Types.RemoteType{
+               %TypeResolver.Types.NamedType{
+                 inner: %TypeResolver.Types.NamedType{
                    inner: %TypeResolver.Types.BinaryT{},
                    module: TypeResolverTest,
                    name: :my_type_there
@@ -1061,7 +1061,7 @@ defmodule TypeResolverTest do
     test "resolves a remote type with parameter locally" do
       assert {
                :ok,
-               %TypeResolver.Types.RemoteType{
+               %TypeResolver.Types.NamedType{
                  inner: %TypeResolver.Types.UnionT{
                    inner: [
                      %TypeResolver.Types.BinaryT{},
@@ -1077,18 +1077,18 @@ defmodule TypeResolverTest do
     test "resolve a very complex remote type remotely" do
       assert {
                :ok,
-               %TypeResolver.Types.RemoteType{
+               %TypeResolver.Types.NamedType{
                  name: :r_e,
                  module: AllTypes,
                  inner: %TypeResolver.Types.UnionT{
                    inner: [
                      %TypeResolver.Types.AtomL{value: :hello},
-                     %TypeResolver.Types.RemoteType{
+                     %TypeResolver.Types.NamedType{
                        name: :maybe_t,
                        module: TypeResolver.Test.Types,
                        inner: %TypeResolver.Types.UnionT{
                          inner: [
-                           %TypeResolver.Types.RemoteType{
+                           %TypeResolver.Types.NamedType{
                              name: :a,
                              module: TypeResolver.Test.Types2,
                              inner: %TypeResolver.Types.BinaryT{}
@@ -1108,7 +1108,7 @@ defmodule TypeResolverTest do
   end
 
   def with_remote(t, module, name) do
-    %Types.RemoteType{
+    %Types.NamedType{
       module: module,
       name: name,
       inner: t

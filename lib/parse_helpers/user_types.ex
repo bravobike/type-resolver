@@ -13,7 +13,7 @@ defmodule TypeResolver.ParseHelpers.UserTypes do
              env = Env.with_args(env, lookup),
              {:ok, t} <- ParseHelpers.parse(t, env) do
           {:ok,
-           %TypeResolver.Types.RemoteType{
+           %TypeResolver.Types.NamedType{
              inner: t,
              module: env.target_module,
              name: user_type
