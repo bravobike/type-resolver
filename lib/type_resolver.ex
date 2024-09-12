@@ -86,7 +86,16 @@ defmodule TypeResolver do
     args = args |> resolve_aliases(__CALLER__)
 
     env = Env.make(target_module, Map.new())
-    res = TypeResolver.ParseHelpers.resolve(env, second, args)
+
+    res =
+      with {:ok, res} <- TypeResolver.ParseHelpers.resolve(env, second, args) do
+        {:ok,
+         %TypeResolver.Types.RemoteType{
+           inner: res,
+           name: second,
+           module: target_module
+         }}
+      end
 
     quote do
       unquote(res |> Macro.escape())

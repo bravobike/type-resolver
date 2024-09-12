@@ -8,10 +8,16 @@ defmodule TypeResolver.ParseHelpers.UserTypes do
         {:error, :cannot_parse}
 
       {t, params} ->
-        with {:ok, args} <- ParseHelpers.parse_args(args, env) do
-          lookup = ParseHelpers.prepare_args(params, args)
-          env = Env.with_args(env, lookup)
-          ParseHelpers.parse(t, env)
+        with {:ok, args} <- ParseHelpers.parse_args(args, env),
+             lookup = ParseHelpers.prepare_args(params, args),
+             env = Env.with_args(env, lookup),
+             {:ok, t} <- ParseHelpers.parse(t, env) do
+          {:ok,
+           %TypeResolver.Types.RemoteType{
+             inner: t,
+             module: env.target_module,
+             name: user_type
+           }}
         end
     end
   end
