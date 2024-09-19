@@ -23,7 +23,7 @@ defmodule TypeResolver.ParseHelpers do
   end
 
   def resolve(env, type, args \\ []) do
-    Code.ensure_compiled(env.target_module)
+    arity = Enum.count(args)
 
     {:type, {_name, t, vars}} =
       case Code.Typespec.fetch_types(env.target_module) do
@@ -33,7 +33,7 @@ defmodule TypeResolver.ParseHelpers do
           case Code.ensure_compiled(exported_module) do
             {:module, _} ->
               exported_module.types()
-              |> Enum.find(fn {:type, {t, _, _}} -> t == type end)
+              |> Enum.find(fn {:type, {t, _, args}} -> t == type && Enum.count(args) == arity end)
 
             {:error, _} ->
               raise "no types can be found for type #{type} in module #{env.target_module}. Env: #{inspect(env)}"
@@ -41,10 +41,11 @@ defmodule TypeResolver.ParseHelpers do
 
         {:ok, specs} ->
           specs
-          |> Enum.find(fn {:type, {t, _, _}} -> t == type end)
+          |> Enum.find(fn {:type, {t, _, args}} -> t == type && Enum.count(args) == arity end)
       end
 
-    t |> parse(env |> Env.with_args(prepare_args(vars, args)))
+    t
+    |> parse(env |> Env.with_args(prepare_args(vars, args, t, env.target_module)))
   end
 
   def parse_user_types(types) do
@@ -55,11 +56,11 @@ defmodule TypeResolver.ParseHelpers do
     {name, {t, params}}
   end
 
-  def prepare_args(nil, _values), do: %{}
+  def prepare_args(nil, _values, _, _), do: %{}
 
-  def prepare_args(vars, values) do
+  def prepare_args(vars, values, t, target_module) do
     if Enum.count(vars) != Enum.count(values) do
-      raise "Error when counting var and args"
+      raise "Arity mismatched between vars and args for type #{inspect(t)} with target module #{inspect(target_module)}: vars = #{inspect(vars)}, args = #{inspect(values)}"
     end
 
     vars
