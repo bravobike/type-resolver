@@ -42,6 +42,13 @@ defmodule TypeResolver.ParseHelpers do
         {:ok, specs} ->
           specs
           |> Enum.find(fn {:type, {t, _, args}} -> t == type && Enum.count(args) == arity end)
+          |> case do
+            nil ->
+              raise "could not find type #{type} in types of module #{env.target_module}. Env: #{inspect(env)}"
+
+            something ->
+              something
+          end
       end
 
     t
