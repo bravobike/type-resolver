@@ -24,6 +24,7 @@ defmodule TypeResolver.ParseHelpers do
 
   def resolve(env, type, args \\ []) do
     arity = Enum.count(args)
+    Code.ensure_compiled!(env.target_module)
 
     {:type, {_name, t, vars}} =
       case Code.Typespec.fetch_types(env.target_module) do
@@ -51,8 +52,7 @@ defmodule TypeResolver.ParseHelpers do
           end
       end
 
-    t
-    |> parse(env |> Env.with_args(prepare_args(vars, args, t, env.target_module)))
+    t |> parse(env |> Env.with_args(prepare_args(vars, args, t, env.target_module)))
   end
 
   def parse_user_types(types) do

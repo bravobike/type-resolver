@@ -17,11 +17,12 @@ defmodule TypeResolver.Env do
     field(:target_module, module())
     field(:user_types, map())
     field(:args, map() | nil)
+    field(:caller, map())
   end
 
-  @spec make(module(), map()) :: Env.t()
-  def make(target, user_types) do
-    %Env{target_module: target, user_types: user_types}
+  @spec make(module(), map(), map()) :: Env.t()
+  def make(target, user_types, caller \\ %{}) do
+    %Env{target_module: target, user_types: user_types, caller: caller}
   end
 
   @spec with_target_module(Env.t(), module()) :: Env.t()

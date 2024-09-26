@@ -1,7 +1,7 @@
 defmodule TypeResolver.MixProject do
   use Mix.Project
 
-  @version "0.1.5"
+  @version "0.1.6"
   @github_page "https://github.com/bravobike/type-resolver"
 
   def project do

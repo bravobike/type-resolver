@@ -80,46 +80,44 @@ defmodule TypeResolver do
   Raises if types cannot be resolved.
   """
   @spec resolve(ast_t()) :: TypeResolver.Types.t()
-  defmacro resolve({{:., _, [first, second]}, _, args}) do
-    target_module = first |> resolve_aliases(__CALLER__)
-    second = resolve_aliases(second, __CALLER__)
-    args = args |> resolve_aliases(__CALLER__)
-
-    env = Env.make(target_module, Map.new())
-
-    res =
-      with {:ok, res} <- TypeResolver.ParseHelpers.resolve(env, second, args) do
-        {:ok,
-         %TypeResolver.Types.NamedType{
-           inner: res,
-           name: second,
-           module: target_module
-         }}
-      end
+  defmacro resolve(a) do
+    res = resolve(a, __CALLER__)
 
     quote do
       unquote(res |> Macro.escape())
     end
   end
 
-  @spec resolve(ast_t()) :: TypeResolver.Types.t()
-  defmacro resolve(other) do
-    current_module = __CALLER__.module
+  def resolve({{:., _, [first, second]}, _, args}, caller) do
+    target_module = first |> resolve_aliases(caller)
+    second = resolve_aliases(second, caller)
+    args = args |> resolve_aliases(caller)
 
-    other = resolve_aliases(other, __CALLER__)
+    env = Env.make(target_module, Map.new(), caller)
+
+    with {:ok, res} <- TypeResolver.ParseHelpers.resolve(env, second, args) do
+      {:ok,
+       %TypeResolver.Types.NamedType{
+         inner: res,
+         name: second,
+         module: target_module
+       }}
+    end
+  end
+
+  def resolve(other, caller) do
+    current_module = caller.module
+
+    other = resolve_aliases(other, caller)
 
     local_user_types =
-      Module.get_attribute(__CALLER__.module, :type)
+      Module.get_attribute(caller.module, :type)
       |> ParseHelpers.parse_user_types()
-      |> Enum.map(fn {n, p} -> {n, resolve_aliases(p, __CALLER__)} end)
+      |> Enum.map(fn {n, p} -> {n, resolve_aliases(p, caller)} end)
       |> Map.new()
 
-    env = Env.make(current_module, local_user_types)
-    res = ParseHelpers.parse(other, env)
-
-    quote do
-      unquote(res |> Macro.escape())
-    end
+    env = Env.make(current_module, local_user_types, caller)
+    ParseHelpers.parse(other, env)
   end
 
   defp resolve_aliases(ast, env) do

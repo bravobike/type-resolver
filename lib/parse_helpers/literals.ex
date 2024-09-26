@@ -126,9 +126,14 @@ defmodule TypeResolver.ParseHelpers.Literals do
       inner =
         Enum.map(types, fn %Types.TupleT{inner: [a, b]} ->
           case a do
-            %InternalRequired{value: t} -> make_exact_or_struct(t, b)
-            %InternalOptional{value: t} -> %Types.MapFieldAssocL{k: t, v: b}
-            t -> %Types.MapFieldExactL{k: t, v: b}
+            %InternalRequired{value: t} ->
+              make_exact_or_struct(t, b)
+
+            %InternalOptional{value: t} ->
+              %Types.MapFieldAssocL{k: t, v: b}
+
+            t ->
+              %Types.MapFieldExactL{k: t, v: b}
           end
         end)
 
@@ -170,8 +175,13 @@ defmodule TypeResolver.ParseHelpers.Literals do
   end
 
   defp translate({:type, _, :map, types}, env) do
-    with {:ok, types} <- ParseHelpers.parse_args(types, env) do
-      make_map_or_struct(types)
+    if is_struct_ast?(types) do
+      module = struct_field(types) |> struct_field_module()
+      %Types.StructL{module: module}
+    else
+      with {:ok, types} <- ParseHelpers.parse_args(types, env) do
+        make_map_or_struct(types)
+      end
     end
   end
 
@@ -406,6 +416,25 @@ defmodule TypeResolver.ParseHelpers.Literals do
       nil -> %Types.MapL{inner: Enum.reverse(inner)}
       something -> %Types.StructL{module: something.value}
     end
+  end
+
+  defp is_struct_ast?(ast) do
+    case struct_field(ast) do
+      nil -> false
+      _ -> true
+    end
+  end
+
+  defp struct_field(fields) do
+    fields
+    |> Enum.find(fn
+      {_, _, :map_field_exact, [{:atom, _, :__struct__}, _]} -> true
+      _ -> false
+    end)
+  end
+
+  defp struct_field_module({_, _, :map_field_exact, [_, {:atom, _, module}]}) do
+    module
   end
 
   defp io_list() do
