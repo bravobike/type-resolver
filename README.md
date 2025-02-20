@@ -70,6 +70,6 @@ of our own code.*
 - Doesn't work with opaque types
 
 ## License
-Copyright © 2024 Bravobike GmbH and Contributors
+Copyright © 2025 Bravobike GmbH and Contributors
 
 This project is licensed under the Apache 2.0 license.

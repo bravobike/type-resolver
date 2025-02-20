@@ -26,6 +26,10 @@ defmodule TypeResolver.ParseHelpers do
     arity = Enum.count(args)
     Code.ensure_compiled!(env.target_module)
 
+    do_raise = fn ->
+      raise "no types can be found for type #{type} in module #{env.target_module}. Env: #{inspect(env)}"
+    end
+
     {:type, {_name, t, vars}} =
       case Code.Typespec.fetch_types(env.target_module) do
         :error ->
@@ -35,20 +39,21 @@ defmodule TypeResolver.ParseHelpers do
             {:module, _} ->
               exported_module.types()
               |> Enum.find(fn {:type, {t, _, args}} -> t == type && Enum.count(args) == arity end)
+              |> case do
+                nil -> do_raise.()
+                other -> other
+              end
 
             {:error, _} ->
-              raise "no types can be found for type #{type} in module #{env.target_module}. Env: #{inspect(env)}"
+              do_raise.()
           end
 
         {:ok, specs} ->
           specs
           |> Enum.find(fn {:type, {t, _, args}} -> t == type && Enum.count(args) == arity end)
           |> case do
-            nil ->
-              raise "could not find type #{type} in types of module #{env.target_module}. Env: #{inspect(env)}"
-
-            something ->
-              something
+            nil -> do_raise.()
+            something -> something
           end
       end
 
